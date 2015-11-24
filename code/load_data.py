@@ -19,6 +19,10 @@ def iter_csv(path, header=None):
     in_file.close()
     
     
+# with open(result_dir+"/valid_actions.txt") as in_file: action_list = in_file.read().strip().split("\n")
+# with open(result_dir+"/valid_users.txt") as in_file: valid_users = set(in_file.read().strip().split("\n"))
+# with open(result_dir+"/valid_feats.txt") as in_file: valid_feats = map(int,in_file.read().strip().split("\n"))
+    
 def load_data(feat_path, target_action, num_users=sys.maxint, exclude_users=set(), valid_feats=None, valid_actions=None):
     # valid_feats = [ 1,0,0,1,... ]
     # valid_actions = [ "L1","L3",... ]
@@ -92,5 +96,7 @@ def load_data(feat_path, target_action, num_users=sys.maxint, exclude_users=set(
             i += 1
     
     return cur_states, actions, rewards, next_states, action_index, valid_users, valid_feats
-            
+    # dim: cur_states,next_states = num_instances x num_features 
+    # dim: actions,rewards = num_instances
+         
     
