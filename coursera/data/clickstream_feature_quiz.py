@@ -116,7 +116,7 @@ feat_file = open(feat_path,"w")
 out_csv = csv.writer(feat_file)
 out_csv.writerow(["user","action","reward"]+sorted(action_index.keys()))
 for user,seq in user_seqs.iteritems():
-    feat = [ 0 for x in range(len(action_cnt)) ]
+    feat = [ 0 for train_x in range(len(action_cnt)) ]
     for timestamp,action,reward in seq:
         feat[action_index[action]] = 1  # binary
         out_csv.writerow([user,action,reward]+feat)
