@@ -93,7 +93,7 @@ def estimate_utility(sample_policy, test_policy, trajectories, discount):
             p = p_test / p_sample * p
             utility += discount ** t * r_t * p
             t = t + 1
-    return utility
+    return utility / len(trajectories)
 
 def estimate_utility_for_single_trajectory(
         sample_policy,

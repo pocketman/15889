@@ -16,16 +16,22 @@ class FQIPolicy(Policy):
         self.valid_actions = valid_actions
 
     def p_action_given_state(self, a, s):
-        state = np.zeros(len(self.feature_mapper))
+        state = np.zeros((1, len(self.feature_mapper)))
         for feat in s:
-            state[self.feature_mapper[feat]] = 1
+            if feat in self.feature_mapper:
+                state[0][self.feature_mapper[feat]] = 1
         possible_actions = self.approximator.predict(state)
-        action = np.argmax(possible_actions)
+        action = self.valid_actions[np.argmax(possible_actions)]
         if a == action:
             return 1
         else:
             return 0
 
     def get_action_given_state(self, s):
-        raise Exception('Unimplemented!')
-        return 0
+        state = np.zeros((1, len(self.feature_mapper)))
+        for feat in s:
+            if feat in self.feature_mapper:
+                state[0][self.feature_mapper[feat]] = 1
+        possible_actions = self.approximator.predict(state)
+        action = self.valid_actions[np.argmax(possible_actions)]
+        return action

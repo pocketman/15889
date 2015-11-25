@@ -15,7 +15,7 @@ class SamplePolicy(Policy):
             if a in possible_actions:
                 actions_taken = reduce(
                         lambda x, y: x + y, possible_actions.values())
-                return possible_actions[a] // actions_taken
+                return possible_actions[a] / float(actions_taken)
             else:
                 return 0
         else:
