@@ -31,6 +31,7 @@ def load_data(feat_path, target_action, num_users=sys.maxint, exclude_users=set(
     num_org_feats = len(csv.reader(open(feat_path)).next()) - 3  # exclude "user","action","reward"
     
     valid_users = set()  # users who are included
+    valid_user_index = dict()
     user_traj_len = defaultdict(int)
     user_traj = defaultdict(list)  # temporary
     header = []
@@ -44,6 +45,7 @@ def load_data(feat_path, target_action, num_users=sys.maxint, exclude_users=set(
         user_traj_len[row[0]] += 1
         if row[1] == target_action:
             valid_users.add(row[0])
+            valid_user_index[row[0]] = len(valid_user_index)
         
         if len(valid_users) == num_users: break
 
@@ -82,7 +84,8 @@ def load_data(feat_path, target_action, num_users=sys.maxint, exclude_users=set(
     cur_states = np.empty((num_instances,num_valid_feats))
     next_states = np.empty((num_instances,num_valid_feats))
     rewards = np.empty(num_instances)
-    actions = np.empty(num_instances)
+    actions = np.empty(num_instances, dtype=int)
+    users = np.empty(num_instances)
     i = 0
     for user,traj in user_traj.iteritems():
         if user not in valid_users: continue
@@ -93,9 +96,10 @@ def load_data(feat_path, target_action, num_users=sys.maxint, exclude_users=set(
             if t==len(traj)-1: rewards[i] = traj[t][1]
             else: rewards[i] = 0
             next_states[i,:] = traj[t][2][valid_feats]
+            users[i] = valid_user_index[user]
             i += 1
     
-    return cur_states, actions, rewards, next_states, action_index, valid_users, valid_feats
+    return cur_states, actions, rewards, next_states, users, action_index, valid_user_index, valid_feats
     # dim: cur_states,next_states = num_instances x num_features 
     # dim: actions,rewards = num_instances
          

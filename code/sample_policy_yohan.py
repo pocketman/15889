@@ -4,18 +4,26 @@ import random as rng
 class SamplePolicy(Policy):
 
     def __init__(self, action_counts):
-        self.action_counts = action_counts
+        self.action_counts = action_counts  # dict[state][action] = int
+        self.cache_p_action_given_state = dict()
+        
 
     def p_action_given_state(self, a, s):
         """
-        gets the probability of taking action a in state s
+        gets the probability of taking action a in state s_
         """
-        if s in self.action_counts:
-            possible_actions = self.action_counts[s]
+        s_ = tuple(s)
+        if self.cache_p_action_given_state.has_key((s_,a)):
+            return self.cache_p_action_given_state[(s_,a)]
+        
+        if s_ in self.action_counts:
+            possible_actions = self.action_counts[s_]
             if a in possible_actions:
                 actions_taken = reduce(
                         lambda x, y: x + y, possible_actions.values())
-                return possible_actions[a] / float(actions_taken)
+                p = possible_actions[a] / float(actions_taken)
+                self.cache_p_action_given_state[(s_,a)] = p
+                return p
             else:
                 return 0
         else:
@@ -26,11 +34,13 @@ class SamplePolicy(Policy):
 
     def get_action_given_state(self, s):
         """
-        Returns the action to take given we are in state s.
+        Returns the action to take given we are in state s_.
         Since sample policy is stochastic, then our returned action is random
         """
-        if s in self.action_counts:
-            possible_actions = self.action_counts[s]
+        s_ = tuple(s)
+        
+        if s_ in self.action_counts:
+            possible_actions = self.action_counts[s_]
             actions_taken = reduce(
                     lambda x, y: x + y, possible_actions.values())
             i = rng.randint(1, actions_taken)
@@ -42,10 +52,12 @@ class SamplePolicy(Policy):
             return curr_action
         else:
             raise Exception(
-                    'Sample Policy does not have any data for action {act}!'
-                            .format(act = a))
+                    'Sample Policy does not have any data for state!')
 
     def policy_statistics(self):
+        """
+        Counter of the number of state occurrences
+        """
         action_tracker = dict([])
         for actions in self.action_counts.values():
             actions_taken = reduce(lambda x, y: x + y, actions.values())

@@ -26,8 +26,8 @@ debug_q0 = True
 
 # Load data
 # cur_states, actions, rewards, next_states, action_index, valid_users, valid_feats = load_data(feat_path, target_action, num_users=num_users, exclude_users=valid_users, valid_feats=valid_feats, valid_actions=action_list)
-cur_states, actions, rewards, next_states, action_index, valid_users, valid_feats = load_data(feat_path, target_action, num_users=num_users)
-print cur_states.shape, next_states.shape, actions.shape, rewards.shape, len(action_index), len(valid_users), len(valid_feats)
+cur_states, actions, rewards, next_states, users, action_index, user_index, valid_feats = load_data(feat_path, target_action, num_users=num_users)
+print cur_states.shape, next_states.shape, actions.shape, rewards.shape, users.shape, len(action_index), len(user_index), len(valid_feats)
 # dim: cur_states,next_states = num_instances x num_features 
 # dim: actions,rewards = num_instances
 
@@ -67,5 +67,5 @@ if not os.path.exists(result_dir):
     os.mkdir(result_dir+"/approximator")
 approximator.save(approximator_path)
 with open(result_dir+"/valid_actions.txt","w") as out_file: print >> out_file, "\n".join(action_list)
-with open(result_dir+"/valid_users.txt","w") as out_file: print >> out_file, "\n".join(valid_users)
+with open(result_dir+"/valid_users.txt","w") as out_file: print >> out_file, "\n".join([ i for u,i in sorted(user_index.iteritems(), key=lambda u,i: i) ])
 with open(result_dir+"/valid_feats.txt","w") as out_file: print >> out_file, "\n".join(map(str,np.array(valid_feats,dtype=int)))
