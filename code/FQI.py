@@ -14,11 +14,12 @@ import time
 discount = 0.9
 num_estimators = 10  # estimators inside the random forest 
 num_iters = 1000  # num of training iterations
-num_users = 12000  # max num of users(=trajectories) (<= sys.maxint)
-target_action = "Q235"  # every trajectory should end with this action
-# target_action = "Q315"  # every trajectory should end with this action
+num_users = sys.maxint  # max num of users(=trajectories) (use sys.maxint for unlimited case)
+num_users_ratio = 0.7  # % of users(=trajectories) for training
+# target_action = "Q235"  # every trajectory should end with this action
+target_action = "Q315"  # every trajectory should end with this action
 feat_path = "../../data/lectures/feats.csv"
-result_dir = "../results/d"+str(discount)+"-u"+str(num_users)+"-e"+str(num_estimators)+"-i"+str(num_iters)+"-t"+target_action
+result_dir = "../results/d"+str(discount)+("-un"+str(num_users) if num_users != sys.maxint else "")+("-ur"+str(num_users_ratio) if num_users_ratio != 1 else "")+"-e"+str(num_estimators)+"-i"+str(num_iters)+"-t"+target_action
 approximator_path = result_dir + "/approximator/random_forest_regressor.model"  # path to save the trained approximator
 debug_action_cnt = False
 debug_q0 = True
@@ -26,8 +27,8 @@ debug_q0 = True
 
 # Load data
 # cur_states, actions, rewards, next_states, action_index, valid_users, valid_feats = load_data(feat_path, target_action, num_users=num_users, exclude_users=valid_users, valid_feats=valid_feats, valid_actions=action_list)
-cur_states, actions, rewards, next_states, users, action_index, user_index, valid_feats = load_data(feat_path, target_action, num_users=num_users)
-print cur_states.shape, next_states.shape, actions.shape, rewards.shape, users.shape, len(action_index), len(user_index), len(valid_feats)
+cur_states, actions, rewards, next_states, users, action_index, user_index, valid_feats = load_data(feat_path, target_action, num_users=num_users, num_users_ratio=num_users_ratio)
+print cur_states.shape, next_states.shape, actions.shape, rewards.shape, users.shape, len(action_index), len(user_index), sum(valid_feats)
 # dim: cur_states,next_states = num_instances x num_features 
 # dim: actions,rewards = num_instances
 
@@ -67,5 +68,5 @@ if not os.path.exists(result_dir):
     os.mkdir(result_dir+"/approximator")
 approximator.save(approximator_path)
 with open(result_dir+"/valid_actions.txt","w") as out_file: print >> out_file, "\n".join(action_list)
-with open(result_dir+"/valid_users.txt","w") as out_file: print >> out_file, "\n".join([ i for u,i in sorted(user_index.iteritems(), key=lambda u,i: i) ])
+with open(result_dir+"/valid_users.txt","w") as out_file: print >> out_file, "\n".join([ u for u,i in sorted(user_index.iteritems(), key=lambda (u,i): i) ])
 with open(result_dir+"/valid_feats.txt","w") as out_file: print >> out_file, "\n".join(map(str,np.array(valid_feats,dtype=int)))

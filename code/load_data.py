@@ -7,6 +7,7 @@ import csv
 from collections import defaultdict
 import numpy as np
 import sys
+import time
 
 def iter_csv(path, header=None):
     in_file = open(path)
@@ -23,9 +24,10 @@ def iter_csv(path, header=None):
 # with open(result_dir+"/valid_users.txt") as in_file: valid_users = set(in_file.read().strip().split("\n"))
 # with open(result_dir+"/valid_feats.txt") as in_file: valid_feats = map(int,in_file.read().strip().split("\n"))
     
-def load_data(feat_path, target_action, num_users=sys.maxint, exclude_users=set(), valid_feats=None, valid_actions=None):
+def load_data(feat_path, target_action, num_users=sys.maxint, num_users_ratio=1, exclude_users=set(), valid_feats=None, valid_actions=None):
     # valid_feats = [ 1,0,0,1,... ]
     # valid_actions = [ "L1","L3",... ]
+    assert num_users==sys.maxint or num_users_ratio==1 
     
     print "Loading data... (usually takes ~30 secs)"
     num_org_feats = len(csv.reader(open(feat_path)).next()) - 3  # exclude "user","action","reward"
@@ -45,9 +47,13 @@ def load_data(feat_path, target_action, num_users=sys.maxint, exclude_users=set(
         user_traj_len[row[0]] += 1
         if row[1] == target_action:
             valid_users.add(row[0])
-            valid_user_index[row[0]] = len(valid_user_index)
         
         if len(valid_users) == num_users: break
+
+    np.random.seed(int(time.time()))
+    valid_users = set(filter(lambda u: np.random.rand() < num_users_ratio, valid_users))
+    for u in valid_users:
+        valid_user_index[u] = len(valid_user_index)
 
 
     # valid actions
