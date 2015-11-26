@@ -15,8 +15,8 @@ result_dir = "../results/d0.9-u12000-e10-i1000-tQ235"
 approximator_path = result_dir+"/approximator/random_forest_regressor.model"
 target_action = "Q235"
 discount = 0.9
-num_users = 999999999
-optimal_dist = False
+num_users = 9999999  # max num of users to consider
+top_k = 10  # optimal policy (probability over top k actions. top_k=-1 means all actions)
 
 with open(result_dir+"/valid_actions.txt") as in_file: action_list = in_file.read().strip().split("\n")
 with open(result_dir+"/valid_users.txt") as in_file: exclude_users = set(in_file.read().strip().split("\n"))
@@ -41,9 +41,8 @@ for s,a,r,u in zip(cur_states,actions,rewards,users):
 
 print "!3"
 sample_policy = SamplePolicy(action_counts) 
-test_policy = FQIPolicy(approximator, optimal_dist)
-# u = estimate_utility(sample_policy, test_policy, trajectories, discount)
-u = estimate_utility(sample_policy, sample_policy, trajectories, discount)
+test_policy = FQIPolicy(approximator, top_k)
+u = estimate_utility(sample_policy, test_policy, trajectories, discount)
+# u = estimate_utility(sample_policy, sample_policy, trajectories, discount)
 print u
-
 
