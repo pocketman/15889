@@ -8,7 +8,7 @@ import csv
 import json
 import re
 import sys
-from model.lecture import Lecture
+from coursera.model.lecture import Lecture
 
 
 
