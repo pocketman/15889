@@ -24,13 +24,17 @@ def iter_csv(path, header=None):
 # with open(result_dir+"/valid_users.txt") as in_file: valid_users = set(in_file.read().strip().split("\n"))
 # with open(result_dir+"/valid_feats.txt") as in_file: valid_feats = map(int,in_file.read().strip().split("\n"))
     
-def load_data(feat_path, target_action, num_users=sys.maxint, num_users_ratio=1, exclude_users=set(), valid_feats=None, valid_actions=None):
+def load_data(feat_path, target_action, num_users=sys.maxint, num_users_ratio=1, exclude_users=set(), valid_feats=None, valid_actions=None, demography=False):
     # valid_feats = [ 1,0,0,1,... ]
     # valid_actions = [ "L1","L3",... ]
-    assert num_users==sys.maxint or num_users_ratio==1 
+    assert num_users==sys.maxint or num_users_ratio==1
+    demo_start = 3
+    feat_start = 40
     
     print "Loading data... (usually takes ~30 secs)"
-    num_org_feats = len(csv.reader(open(feat_path)).next()) - 3  # exclude "user","action","reward"
+    if demography: num_org_feats = len(csv.reader(open(feat_path)).next()) - demo_start
+    else: num_org_feats = len(csv.reader(open(feat_path)).next()) - feat_start
+    
     
     valid_users = set()  # users who are included
     valid_user_index = dict()
@@ -42,7 +46,8 @@ def load_data(feat_path, target_action, num_users=sys.maxint, num_users_ratio=1,
         if row[0] in valid_users: continue  # continue if target_action has already been reached
         if valid_actions and row[1] not in valid_actions: continue  # continue if action is not in the given valid_actions
         
-        feat = np.array(row[3:], dtype=float)
+        if demography: feat = np.array(row[demo_start:], dtype=float)
+        else: feat = np.array(row[feat_start:], dtype=float)
         user_traj[row[0]].append( (row[1],float(row[2]),feat) )
         user_traj_len[row[0]] += 1
         if row[1] == target_action:
