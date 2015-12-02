@@ -1,6 +1,6 @@
 import csv
 import numpy as np
-from sample_policy import SamplePolicy
+from sample_policy_yohan import SamplePolicy
 
 def get_sample_policy(file_name):
     action_counts = get_action_counts(file_name)
@@ -100,7 +100,6 @@ def estimate_utility_for_single_trajectory(
         test_policy,
         trajectory,
         discount):
-    raise Exception('Doesn\'t work')
     utility = 0
     t = 0
     p = 1
@@ -108,24 +107,62 @@ def estimate_utility_for_single_trajectory(
         s_t = trajectory[t][0]
         a_t = trajectory[t][1]
         r_t = trajectory[t][2]
-        p_test = test_policy.p_ction_given_state(a_t, s_t, test_policy)
-        p_sample = sample_policy.p_action_given_state(a_t, s_t, sample_policy)
+        p_test = test_policy.p_action_given_state(a_t, s_t)
+        p_sample = sample_policy.p_action_given_state(a_t, s_t)
         p = p_test / p_sample * p
-        utility += discount ** t * r_t * p
+        utility += discount ** t * r_t
         t = t + 1
-    return utility
+    return utility * p
 
-def hcope(X, c, delta):
+def cut(X, c, delta, m):
     """
     X - list of X_i >= 0 such that E[X_i] == u
     c - the cut off we want to use for hcope
     delta - probability bound we want on our output
+    m - the size of sample we want to compute this for
     returns the reward such that E[X_i] >= output with probability 1 - delta
     """
     n = len(X)
     Y = np.empty(n)
     Y.fill(c)
     Y = np.minimum(X, Y)
-    lbound = (np.mean(Y) - 7 * c * np.log(2 / delta) / (3 * (n - 1)) -
-            np.sqrt(2 * np.log(2 / delta) * np.variance(Y) / n))
+    lbound = (np.mean(Y) - 7 * c * np.log(2 / delta) / (3 * (m - 1)) -
+            np.sqrt(2 * np.log(2 / delta) * np.var(Y) / m))
     return lbound
+
+def get_X(sample_policy, test_policy, trajectories, discount):
+    X = np.zeros([len(trajectories)])
+    for i in range(len(trajectories)):
+        X[i] = estimate_utility_for_single_trajectory(
+            sample_policy,
+            test_policy,
+            trajectories[i],
+            discount)
+    return X
+
+def get_max_c(X, delta, m):
+    possible_cs = np.linspace(0, max(X), num = 30)
+    max_c = 0
+    max_val = 0
+    for c in possible_cs:
+        if cut(X, c, delta, m) > max_val:
+            max_c = c
+            max_val = cut(X, c, delta, m)
+    print max_c
+    return max_c
+
+def hcope(sample_policy, test_policy, trajectories, discount, delta):
+    X = get_X(sample_policy, test_policy, trajectories, discount)
+    # use 20% to optimize c and 80% to calculate lower bound
+    X_20 = np.random.choice(X, size = int(len(X) * 0.2), replace = False)
+    X_80 = []
+    used = list(X_20)
+    for x in X:
+        if not x in used:
+            X_80.append(x)
+        else:
+            used.remove(x)
+    X_80 = np.array(X_80)
+    assert len(X_20) + len(X_80) == len(X)
+    c = get_max_c(X_20, delta, len(X_80))
+    return cut(X_80, c, delta, len(X_80))
