@@ -8,7 +8,7 @@ from sample_policy_yohan import SamplePolicy
 from sklearn.externals import joblib
 from load_data import load_data
 from collections import defaultdict
-from importance_sampler_yohan import *
+from importance_sampler import *
 import sys
 
 feat_path = "../../data/lectures/feats.csv"
@@ -25,7 +25,7 @@ with open(result_dir+"/valid_users.txt") as in_file: exclude_users = set(in_file
 with open(result_dir+"/valid_feats.txt") as in_file: valid_feats = map(int,in_file.read().strip().split("\n"))
 
 approximator = joblib.load(approximator_path)
-cur_states, actions, rewards, next_states, users, action_index, user_index, valid_feats = load_data(feat_path, target_action, num_users=num_users, exclude_users=exclude_users, valid_feats=valid_feats, valid_actions=action_list)
+cur_states, actions, rewards, next_states, users, action_index, user_index, valid_feats = load_data(feat_path, target_action, num_users=num_users, exclude_users=exclude_users, valid_feats=valid_feats, valid_actions=action_list, demography=True)
 print cur_states.shape, actions.shape, rewards.shape, next_states.shape, len(user_index)
 
 action_counts = defaultdict(lambda: defaultdict(int))
@@ -39,10 +39,12 @@ for s,a,r,u in zip(cur_states,actions,rewards,users):
     trajectories[-1].append((s,a,r))
     prev_u = u
 
-print "Calculating..."
-sample_policy = SamplePolicy(action_counts) 
+sample_policy = SamplePolicy(action_counts)
 test_policy = FQIPolicy(approximator, top_k)
 # u = estimate_utility(sample_policy, test_policy, trajectories, discount)
-u = estimate_utility(sample_policy, sample_policy, trajectories, discount)
-print u
+# u = estimate_utility(sample_policy, sample_policy, trajectories, discount)
+# print u
 
+delta = 0.05
+lower_bound = hcope(sample_policy, test_policy, trajectories, discount, delta)
+print 'Lower bound (p=0.95) of {lb}'.format(lb = lower_bound)
