@@ -7,20 +7,32 @@ For RL Project
 
 import re
 from collections import defaultdict
-from model.clickstream import Clickstream
-from model.quiz import Quiz
-from model.lecture import Lecture
+from coursera.model.clickstream import Clickstream
+from coursera.model.quiz import Quiz
+from coursera.model.lecture import Lecture
 import csv
+import sys
 
-in_path = "/Users/Yohan/Dropbox/Research/data/MOOCs/algebra-001/algebra-001_clickstream_export"
+# in_path = "/Users/Yohan/Dropbox/Research/data/MOOCs/algebra-001/algebra-001_clickstream_export"
 db_path = "/Users/Yohan/Dropbox/Research/data/MOOCs/algebra-001/Intermediate Algebra (algebra-001)_SQL_anonymized_general.sql"
-out_dir = "/Users/Yohan/Dropbox/CMU/Semesters/2015 Fall/15889 RL/pj/data/lectures"
+demo_path = "/Users/Yohan/Dropbox/Research/data/MOOCs/algebra-001/algebra-001_Demographics_individual_responses.csv"
+out_dir = "/Users/Yohan/Dropbox/CMU/Semesters/2015 Fall/15889 RL/pj/data/lectures+demography"
 seqs_path = out_dir+"/user_seqs.txt"
 seq_len_path = out_dir+"/seqs_length.csv"
 action_path = out_dir+"/actions.csv"
 feat_path = out_dir+"/feats.csv"
 
-quiz_submission = dict()
+demo_csv = csv.reader(open(demo_path))
+demo_csv.next()
+raw_demo_header = demo_csv.next()
+demo_header = []
+demo_start, demo_end = (20,56)
+for h in raw_demo_header[demo_start:(demo_end+1)]:
+    demo_header.append(re.sub(".*-", "", h).strip())
+print demo_header
+demo_map = dict()
+for row in demo_csv:
+    demo_map[row[2]] = [ 1 if r=="TRUE" else 0 for r in row[demo_start:(demo_end+1)] ]
 
 
 action_cnt = defaultdict(int)
@@ -34,6 +46,7 @@ for quiz in Quiz.quiz_submissions(db_path):
     action_cnt["Q"+quiz['item_id']] += 1
 
 
+# quiz_submission = dict()
 # for log in Clickstream.logs(in_path):
 #     action = re.sub("/$","", re.sub("https://class.coursera.org/algebra-001/", "", log["page_url"]))
 #     
@@ -114,12 +127,14 @@ for i,(action,cnt) in enumerate(sorted(action_cnt.iteritems())):
     
 feat_file = open(feat_path,"w")
 out_csv = csv.writer(feat_file)
-out_csv.writerow(["user","action","reward"]+sorted(action_index.keys()))
+out_csv.writerow(["user","action","reward","demo_unavailable"]+demo_header+sorted(action_index.keys()))
 for user,seq in user_seqs.iteritems():
     feat = [ 0 for train_x in range(len(action_cnt)) ]
     for timestamp,action,reward in seq:
         feat[action_index[action]] = 1  # binary
-        out_csv.writerow([user,action,reward]+feat)
+        if demo_map.has_key(user): demo_feat = [0] + demo_map[user]
+        else: demo_feat = [1] + [ 0 for d in demo_header ] 
+        out_csv.writerow([user,action,reward]+demo_feat+feat)
 feat_file.close()
 
 
