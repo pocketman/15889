@@ -5,11 +5,11 @@ import numpy as np
 from importance_sampler import estimate_utility, hcope
 from load_data import read_feats
 from collections import defaultdict
-from sample_policy import SamplePolicy
+from sample_policy_yohan import SamplePolicy
 
 q377_labels = ["L1","L101","L103","L105","L107","L109","L11","L111","L113","L115","L117","L119","L121","L123","L125","L127","L129","L13","L131","L133","L135","L137","L141","L143","L147","L149","L15","L151","L153","L155","L157","L159","L161","L163","L165","L167","L169","L17","L171","L173","L175","L177","L179","L181","L183","L185","L187","L189","L19","L191","L193","L195","L197","L199","L201","L203","L205","L207","L208","L209","L21","L211","L215","L217","L219","L223","L225","L226","L227","L23","L25","L27","L29","L31","L33","L35","L37","L39","L41","L43","L45","L47","L49","L5","L51","L53","L55","L57","L59","L61","L63","L65","L67","L69","L7","L71","L73","L75","L77","L79","L81","L83","L85","L87","L89","L9","L91","L93","L95","L97","L99","Q235","Q237","Q239","Q240","Q241","Q243","Q245","Q247","Q251","Q253","Q307","Q313","Q315","Q317","Q319","Q323","Q325","Q327","Q329","Q330","Q333","Q334","Q337","Q338","Q341","Q342","Q343","Q344","Q345","Q346","Q347","Q349","Q351","Q353","Q355","Q357","Q359","Q365","Q367","Q369","Q377"]
 q377_labels = np.array(q377_labels)
-discount = 0.99
+discount = 0.95
 delta = 0.05
 q377_dir = 'C:\\Users\\REX\\Dropbox\\cmu\\fall2015\\15889\\project\\lectures\\q377'
 
@@ -55,3 +55,4 @@ sample_policy_377 = SamplePolicy(action_counts_377)
 expected_reward_377 = estimate_utility(sample_policy_377, q377_policy, trajectories_377_test, discount)
 lower_bound_377 = hcope(sample_policy_377, q377_policy, trajectories_377_test, discount, delta)
 print 'Expected Reward = {r}, Lower bound = {l}'.format(r = expected_reward_377, l = lower_bound_377)
+print 'Expected Reward sample = {r}'.format(r = estimate_utility(sample_policy_377, sample_policy_377, trajectories_377_test, discount))

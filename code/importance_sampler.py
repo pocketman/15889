@@ -138,6 +138,9 @@ def get_X(sample_policy, test_policy, trajectories, discount):
             test_policy,
             trajectories[i],
             discount)
+    print 'max is: ' + str(np.max(X))
+    print 'std is ' + str(np.std(X))
+    print 'mean is ' + str(np.mean(X))
     return X
 
 def get_max_c(X, delta, m):
@@ -148,7 +151,6 @@ def get_max_c(X, delta, m):
         if cut(X, c, delta, m) > max_val:
             max_c = c
             max_val = cut(X, c, delta, m)
-    print max_c
     return max_c
 
 def hcope(sample_policy, test_policy, trajectories, discount, delta):
