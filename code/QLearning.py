@@ -1,5 +1,9 @@
 import numpy as np
+import filter_data as fd
 EPS = 0.001
+labels_path = 'C:\\Users\\REX\\Dropbox\\cmu\\fall2015\\15889\\project\\results\\d0.9-ur0.7-e10-i1000-tQ315\\valid_actions.txt'
+
+labels = np.array(fd.get_labels(labels_path))
 
 def estimate_rewards(next_states, actions, rewards, reward_action, v = 1):
     """
@@ -23,7 +27,9 @@ def estimate_rewards(next_states, actions, rewards, reward_action, v = 1):
             state_total_rewards[s] = [r]
     for s in state_total_rewards.keys():
         r = np.array(state_total_rewards[s])
-        state_total_rewards[s],_ = update_prior_mean_with_data(0, v, r)#avg_reward, v, r)
+        #if np.mean(r) > 3 and len(r) > 5:
+        #    print masked_feat_labels[np.array(s).astype(int) == 1], str(r)
+        state_total_rewards[s],_ = update_prior_mean_with_data(0, v, r)
     return state_total_rewards
 
 def discount_rewards(state_rewards, discount):

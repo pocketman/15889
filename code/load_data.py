@@ -24,12 +24,43 @@ def iter_csv(path, header=None):
 # with open(result_dir+"/valid_users.txt") as in_file: valid_users = set(in_file.read().strip().split("\n"))
 # with open(result_dir+"/valid_feats.txt") as in_file: valid_feats = map(int,in_file.read().strip().split("\n"))
 
+
+def read_feats(out_dir, mode, target_action):   # mode: {"train","dev","test"}
+    cur_state_list = []
+    next_state_list = []
+    action_list = []
+    reward_list = []
+    trajectories = []
+
+    cur_trajectory = []
+    for row in iter_csv(out_dir+"/feats_"+mode+".csv"):
+        cur_state = tuple(map(lambda x: float(x), row[:((len(row)-2)/2)]))
+        action = int(row[((len(row)-2)/2)])
+        reward = float(row[((len(row)-2)/2)+1])
+        next_state = tuple(map(lambda x: float(x), row[((len(row)-2)/2+2):]))
+        cur_state_list.append(cur_state)
+        action_list.append(action)
+        reward_list.append(reward)
+        next_state_list.append(next_state)
+        cur_trajectory.append((cur_state, action, reward, next_state))
+        if action == target_action:
+            trajectories.append(cur_trajectory)
+            cur_trajectory = []
+    cur_states = np.array(cur_state_list)
+    actions = np.array(action_list)
+    rewards = np.array(reward_list)
+    next_states = np.array(next_state_list)
+
+    valid_actions = open(out_dir+"/actions.txt").read().strip().split("\n")
+    valid_users = open(out_dir+"/users_"+mode+".txt").read().strip().split("\n")
+    return np.array(cur_states), np.array(actions), np.array(rewards), np.array(next_states), np.array(valid_actions), np.array(valid_users), trajectories
+
 def load_data(feat_path, target_action, num_users=sys.maxint, num_users_ratio=1, exclude_users=set(), valid_feats=None, valid_actions=None, demography=False):
     # valid_feats = [ 1,0,0,1,... ]
     # valid_actions = [ "L1","L3",... ]
     assert num_users==sys.maxint or num_users_ratio==1
     demo_start = 3
-    feat_start = 40
+    feat_start = 3
 
     print "Loading data... (usually takes ~30 secs)"
     if demography: num_org_feats = len(csv.reader(open(feat_path)).next()) - demo_start
